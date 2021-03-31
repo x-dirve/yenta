@@ -1,10 +1,10 @@
 {
-    "name": "@x-dirve/yenta",
+    "name": "@x-drive/yenta",
     "version": "1.0.0",
-    "description": "",
+    "description": "Taro componentDidCatch 问题暴力修复模块",
     "author": "digiaries <digiaries@hotmail.com>",
     "main": "dist/index.js",
-    "keywords": [],
+    "keywords": ["Taro"],
     "files": [
         "dist"
     ],
@@ -26,5 +26,7 @@
     },
     "devDependencies": {
         "@x-drive/changelog": "1.1.5"
-    }
+    },
+    "homepage": "https://github.com/x-dirve/yenta#readme",
+    "license": "MIT"
 }
