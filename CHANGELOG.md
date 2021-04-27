@@ -1,3 +1,8 @@
+## v1.0.1
+
+### Feat
+- feat: 支持处理 esm 模块 [8e7894a](https://github.com/x-dirve/yenta/commit/8e7894a10cd3f253cb2275b357dfb68e82593976)
+
 ## v1.0.0
 
 ### Feat
