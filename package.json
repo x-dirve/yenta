@@ -1,6 +1,6 @@
 {
     "name": "@x-drive/yenta",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Taro componentDidCatch 问题暴力修复模块",
     "author": "digiaries <digiaries@hotmail.com>",
     "main": "dist/index.js",

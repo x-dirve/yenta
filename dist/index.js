@@ -14,6 +14,8 @@ const MOD_NAME = "[TARO-YENTA]";
 // 要处理的目标文件
 const TARGET_FILE = "@tarojs/runtime/dist/index.js";
 
+const TARGET_ESM_FILE = "@tarojs/runtime/dist/runtime.esm.js";
+
 console.log(
     chalk.blue(MOD_NAME)
     , chalk.yellow("componentDidCatch 问题强制修复模块启动")
@@ -26,9 +28,20 @@ const FilePath = path.resolve(
     , ...(TARGET_FILE.split("/"))
 );
 
+const EsmFilePath = path.resolve(
+    process.cwd()
+    , "node_modules"
+    , ...(TARGET_ESM_FILE.split("/"))
+);
+
 // 文件内容
 var runtimeFileStr = fs.readFileSync(
     FilePath
+    , "utf8"
+);
+
+var esmRuntimeFileStr = fs.readFileSync(
+    EsmFilePath
     , "utf8"
 );
 
@@ -37,6 +50,9 @@ const MARK_REGEXP = /@YENTA/;
 
 // 代码块匹配正则
 const TARGET_REGEXP = /function\scomponentDidCatch[\s]?\(error\,\sinfo\)\s\{([\W\w]+)\};\s+Page/;
+
+// esm 代码块匹配正则
+const ESM_TARGET_REGEXP = /componentDidCatch[\s]?\(error\,\sinfo\)\s\{([\W\w]+)\}\s+render\(\)\s\{\s+const\schildren/;
 
 // pr 中用于修复的代码
 const REPLACE_STR = `
@@ -51,7 +67,7 @@ const REPLACE_STR = `
                     console.warn(error);
                     console.error(info.componentStack);
                 }
-`;
+            `;
 
 // 原始内容，没什么卵用，只是做个备份
 const ORIGIN_STR = `
@@ -59,28 +75,24 @@ const ORIGIN_STR = `
                 console.error(info.componentStack);
 `;
 
-if (MARK_REGEXP.test(runtimeFileStr)) {
-    console.log(
-        chalk.blue(MOD_NAME)
-        , "目标文件已被处理过，不再尝试替换\n"
-    );
-} else {
+function processor(target, filePath, regexp, fileStr) {
     console.log(
         chalk.blue(MOD_NAME)
         , chalk.yellow("目标文件未处理过，尝试强行替换")
-        , chalk.red.underline(`[${TARGET_FILE}]`)
+        , chalk.red.underline(`[${target}]`)
         , chalk.yellow("中的内容")
     );
     console.log(
         " ".repeat(MOD_NAME.length)
         , chalk.gray("详情请查看模块内部说明")
     );
-    var newRuntimeFileStr = runtimeFileStr.replace(TARGET_REGEXP, function (str, ma) {
+    var newRuntimeFileStr = fileStr.replace(regexp, function (str, ma) {
         return str.replace(ma, REPLACE_STR);
     });
+
     newRuntimeFileStr = `// @YENTA\n${newRuntimeFileStr}`;
     fs.writeFileSync(
-        FilePath
+        filePath
         , newRuntimeFileStr
     );
     newRuntimeFileStr = null;
@@ -88,7 +100,7 @@ if (MARK_REGEXP.test(runtimeFileStr)) {
     const BackupFilePath = path.resolve(
         process.cwd()
         , "node_modules"
-        , ...(TARGET_FILE.replace("index", "index.bak").split("/"))
+        , ...(target.replace(/(index|esm)/i, "$1.bak").split("/"))
     );
 
     fs.writeFileSync(
@@ -98,8 +110,27 @@ if (MARK_REGEXP.test(runtimeFileStr)) {
 
     console.log(
         chalk.blue(MOD_NAME)
-        , "替换成功，备份文件 [index.bak.js] 位于同目录下\n"
+        , "替换成功，备份文件位于同目录下"
     );
 }
+
+if (MARK_REGEXP.test(runtimeFileStr)) {
+    console.log(
+        chalk.blue(MOD_NAME)
+        , `目标文件[${TARGET_FILE}]已被处理过，不再尝试替换\n`
+    );
+} else {
+    processor(TARGET_FILE, FilePath, TARGET_REGEXP, runtimeFileStr);
+}
+
+if (MARK_REGEXP.test(esmRuntimeFileStr)) {
+    console.log(
+        chalk.blue(MOD_NAME)
+        , `目标文件[${TARGET_ESM_FILE}]已被处理过，不再尝试替换\n`
+    );
+} else {
+    processor(TARGET_ESM_FILE, EsmFilePath, ESM_TARGET_REGEXP, esmRuntimeFileStr);
+}
+
 
 runtimeFileStr = null;
